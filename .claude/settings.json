@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "model": "claude-sonnet-4-6",
+  "tools": {
+    "allowlist": {
+      "edit": {
+        "patterns": [".claude/**", ".codex/**", ".gemini/**", "src/**", "*.md", "pom.xml"],
+        "system": false
+      },
+      "write": {
+        "patterns": [".claude/**", ".codex/**", ".gemini/**", "src/**", "*.md", "pom.xml"],
+        "system": false
+      },
+      "bash": {
+        "commands": [
+          "mvn -q -DskipTests compile",
+          "mvn -q test",
+          "mvn -q -DskipTests package",
+          "mvn -q clean",
+          "mvn test -Dtest=.*",
+          "git status",
+          "git diff",
+          "git log",
+          "docker ps",
+          "nc -zv"
+        ]
+      }
+    },
+    "denylist": {
+      "bash": {
+        "patterns": [".env*", "*.pem", "*.key", "secrets.*", "credentials.*"],
+        "reason": "보안: 비밀정보 파일 읽기 금지"
+      }
+    }
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      ".claude/hooks/agent-router.py"
+    ],
+    "PreToolUse": [
+      {
+        "tools": ["Edit", "Write"],
+        "script": ".claude/hooks/check-codex-before-write.py"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "tools": ["Edit", "Write"],
+        "script": ".claude/hooks/lint-on-save.py"
+      },
+      {
+        "tools": ["Bash"],
+        "patterns": ["mvn test", "mvn.*test"],
+        "script": ".claude/hooks/post-test-analysis.py"
+      }
+    ]
+  }
+}
