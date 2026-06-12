@@ -1,0 +1,45 @@
+{
+  "pages": {
+    "661880836": {
+      "page_id": "661880836",
+      "title": "02_요구사항_현황판",
+      "local_file": "02_요구사항_현황판.md",
+      "version": 1,
+      "checksum": "d73fb99769f7ed0e",
+      "last_synced": "2026-06-07T00:11:34.681995",
+      "space_key": "TNYUU",
+      "url": "/spaces/TNYUU/pages/661880836/02_+_"
+    },
+    "661585941": {
+      "page_id": "661585941",
+      "title": "10. 주간보고 템플릿",
+      "local_file": "10.-주간보고-템플릿.md",
+      "version": 1,
+      "checksum": "834bfcc54e3839b5",
+      "last_synced": "2026-06-07T00:11:36.799675",
+      "space_key": "TNYUU",
+      "url": "/spaces/TNYUU/pages/661585941/10."
+    },
+    "661520434": {
+      "page_id": "661520434",
+      "title": "DEL-REQ-001 요구사항정의서",
+      "local_file": "DEL-REQ-001-요구사항정의서.md",
+      "version": 1,
+      "checksum": "7c4d2e45f8c72c49",
+      "last_synced": "2026-06-07T00:11:38.952565",
+      "space_key": "TNYUU",
+      "url": "/spaces/TNYUU/pages/661520434/DEL-REQ-001"
+    },
+    "661389379": {
+      "page_id": "661389379",
+      "title": "DEL-REQ-002 요구사항정의서",
+      "local_file": "DEL-REQ-002-요구사항정의서.md",
+      "version": 1,
+      "checksum": "119d792e595f33a0",
+      "last_synced": "2026-06-07T00:11:40.373842",
+      "space_key": "TNYUU",
+      "url": "/spaces/TNYUU/pages/661389379/DEL-REQ-002"
+    }
+  },
+  "last_sync": "2026-06-07T00:11:40.373858"
+}
