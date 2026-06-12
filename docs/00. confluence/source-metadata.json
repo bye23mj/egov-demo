@@ -1,24 +1,24 @@
 {
-  "runId": "REQ-MZ2026-20260612-135754",
+  "runId": "REQ-MZ2026-20260612-141821",
   "projectKey": "MZ2026",
   "targetStatus": "내부검토",
   "phase": "1-collect",
-  "startedAt": "2026-06-12T13:57:57.010766",
+  "startedAt": "2026-06-12T14:18:24.178748",
   "summary": {
     "totalIssues": 2,
-    "jiraAttachments": 0,
-    "confluencePages": 1,
-    "totalDocuments": 1
+    "confluencePages": 1
   },
   "sourceDocuments": [
     {
       "type": "confluence_page",
       "issue": "MZ2026-1",
       "reqid": "ERP-001",
+      "reqid_source": "JIRA_FIELD",
       "page_id": "661520434",
       "title": "ERP-001 요구사항정의서",
       "file": "/Users/ai/vscode/egov-demo/docs/00. confluence/MZ2026-1/ERP-001/ERP-001 요구사항정의서.md"
     }
   ],
-  "folderStructure": "issue_key/REQID/"
+  "folderStructure": "issue_key/REQID/",
+  "reqidStrategy": "1. JIRA_FIELD → 2. TITLE → 3. CONFLUENCE_METADATA → 4. GENERATED"
 }
