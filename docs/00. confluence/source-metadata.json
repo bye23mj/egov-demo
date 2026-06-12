@@ -1,14 +1,25 @@
 {
-  "runId": "REQ-MZ2026-20260612-141821",
+  "runId": "REQ-MZ2026-20260612-142021",
   "projectKey": "MZ2026",
   "targetStatus": "내부검토",
   "phase": "1-collect",
-  "startedAt": "2026-06-12T14:18:24.178748",
+  "startedAt": "2026-06-12T14:20:24.398551",
   "summary": {
     "totalIssues": 2,
-    "confluencePages": 1
+    "jiraAttachments": 1,
+    "confluencePages": 1,
+    "totalDocuments": 2
   },
   "sourceDocuments": [
+    {
+      "type": "jira_attachment",
+      "issue": "MZ2026-1",
+      "reqid": "ERP-001",
+      "reqid_source": "JIRA_FIELD",
+      "filename": "EPR-001 화면정의서.docx",
+      "file_path": "/Users/ai/vscode/egov-demo/docs/00. confluence/MZ2026-1/ERP-001/EPR-001 화면정의서.docx",
+      "size": 1321
+    },
     {
       "type": "confluence_page",
       "issue": "MZ2026-1",
@@ -20,5 +31,19 @@
     }
   ],
   "folderStructure": "issue_key/REQID/",
-  "reqidStrategy": "1. JIRA_FIELD → 2. TITLE → 3. CONFLUENCE_METADATA → 4. GENERATED"
+  "supportedFormats": [
+    "pdf",
+    "docx",
+    "xlsx",
+    "pptx",
+    "hwpx",
+    "doc",
+    "xls",
+    "ppt",
+    "hwp",
+    "txt",
+    "xml",
+    "json",
+    "csv"
+  ]
 }
