@@ -15,8 +15,8 @@ pip install beautifulsoup4 html2text requests
 ### 2단계: 환경 변수 설정
 
 ```bash
-export JIRA_EMAIL="bye23mj@nsonesoft.com"
-export JIRA_TOKEN="ATATT3xFfGF0KmZp0WmP5iRFdFPXoQj4UGHz4m3wF5OAGy67bmWrkfYSRUtCTTPzQwPDVARUm20PMN4k6aKjBUXC_Tks7NdbiN1rjAFp4BJ3KIsOgf4KqLOzmAbCLl3PIHm8o4dJTqzs9EsVERGizts4GFDf_kpNbj5pSnnnOAtQeWj8Fhi14Hs=5E98863D"
+export JIRA_EMAIL="your-email@company.com"
+export JIRA_TOKEN="your-atlassian-api-token-here"
 export JIRA_BOARD_ID="427"
 ```
 
