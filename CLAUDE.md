@@ -136,6 +136,7 @@ mvn -q -DskipTests package    # PASS
 
 | 스킬 | 용도 |
 |------|------|
+| `/code-review-team` | PR diff 4인 리뷰팀 운영 (정적·설계·보안·리팩토링) |
 | `/startproject` | 멀티에이전트 기능 개발 킥오프 |
 | `/plan` | 구현 계획 수립 (파일·단계·검증 방법) |
 | `/tdd` | Red→Green→Refactor TDD 사이클 |
