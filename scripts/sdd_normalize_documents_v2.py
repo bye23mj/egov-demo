@@ -280,8 +280,18 @@ def main():
     print("📖 Phase 2: 문서 정규화 v2 (HTML 파싱 + 메타데이터 추출)")
     print("="*70)
 
-    # 작업 디렉토리
-    workspace = Path("/Users/ai/vscode/egov-demo/docs/00. confluence")
+    # 작업 디렉토리 (환경변수 또는 기본값)
+    workspace_path = os.getenv("SDD_WORKSPACE")
+    if not workspace_path:
+        # 기본값: 스크립트 위치 기반 상대 경로
+        workspace_path = Path(__file__).parent.parent / "docs" / "00. confluence"
+
+    workspace = Path(workspace_path)
+    if not workspace.exists():
+        print(f"✗ Workspace 디렉토리가 없습니다: {workspace}")
+        print(f"   환경변수 설정: export SDD_WORKSPACE=/path/to/workspace")
+        sys.exit(1)
+
     metadata_file = workspace / "source-metadata.json"
 
     if not metadata_file.exists():
@@ -360,15 +370,50 @@ def main():
 
     print(f"  ✓ 저장: {output_file}")
 
-    # Step 4: Markdown 파일 업데이트 (개선된 버전으로)
-    print(f"\n✓ Step 4: Markdown 파일 업데이트")
+    # Step 4: Markdown 파일 업데이트 (백업 포함)
+    print(f"\n✓ Step 4: Markdown 파일 업데이트 (백업)")
 
+    backup_dir = workspace / "backups"
+    backup_dir.mkdir(parents=True, exist_ok=True)
+
+    update_count = 0
     for analysis in analyses:
         if analysis.get("markdown_content"):
             file_path = Path(analysis["file_path"])
-            with open(file_path, 'w', encoding='utf-8') as f:
-                f.write(analysis["markdown_content"])
-            print(f"  ✓ 업데이트: {file_path.name}")
+            if not file_path.exists():
+                print(f"  ⚠️  파일을 찾을 수 없음: {file_path.name}")
+                continue
+
+            # 1. 원본 파일 백업
+            backup_file = backup_dir / f"{file_path.name}.backup-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
+            try:
+                import shutil
+                shutil.copy2(file_path, backup_file)
+            except OSError as e:
+                print(f"  ✗ 백업 실패: {file_path.name} - {e}")
+                continue
+
+            # 2. 임시 파일에 쓰기
+            temp_file = file_path.with_suffix('.md.tmp')
+            try:
+                with open(temp_file, 'w', encoding='utf-8') as f:
+                    f.write(analysis["markdown_content"])
+            except OSError as e:
+                print(f"  ✗ 임시 파일 쓰기 실패: {temp_file.name} - {e}")
+                continue
+
+            # 3. 임시 파일을 원본으로 이동
+            try:
+                temp_file.replace(file_path)
+                update_count += 1
+                print(f"  ✓ 업데이트: {file_path.name} (백업: {backup_file.name})")
+            except OSError as e:
+                print(f"  ✗ 파일 이동 실패: {file_path.name} - {e}")
+                # 실패한 경우 임시 파일 정리
+                if temp_file.exists():
+                    temp_file.unlink()
+
+    print(f"  총 업데이트: {update_count}개 파일")
 
     # 결과 요약
     print(f"\n" + "="*70)

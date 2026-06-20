@@ -45,11 +45,19 @@ def extract_reqid(issue_key: str, title: str = None, confluence_content: str = N
     return {"reqid": generated, "source": "GENERATED"}
 
 # JIRA 설정
-JIRA_EMAIL = os.getenv("JIRA_EMAIL", "bye23mj@nsonesoft.com")
-JIRA_TOKEN = os.getenv("JIRA_TOKEN", "")
+JIRA_EMAIL = os.getenv("JIRA_EMAIL")
+JIRA_TOKEN = os.getenv("JIRA_TOKEN")
 JIRA_INSTANCE = "https://nsonesoft.atlassian.net"
 PROJECT_KEY = "MZ2026"
 BOARD_ID = "427"
+
+def validate_credentials():
+    """필수 환경변수 검증"""
+    if not JIRA_EMAIL:
+        raise ValueError("JIRA_EMAIL 환경변수가 필요합니다")
+    if not JIRA_TOKEN:
+        raise ValueError("JIRA_TOKEN 환경변수가 필요합니다")
+    return True
 
 # 지원 형식
 SUPPORTED_FORMATS = [
@@ -67,33 +75,54 @@ def download_attachment(attachment_id: str, filename: str, output_dir: Path) -> 
     """JIRA에서 첨부파일 다운로드"""
     try:
         auth = (JIRA_EMAIL, JIRA_TOKEN)
-        
+
         # JIRA 첨부파일 다운로드 URL
         url = f"{JIRA_INSTANCE}/rest/api/2/attachment/{attachment_id}"
-        
+
         response = requests.get(url, auth=auth, timeout=30, stream=True)
-        
-        if response.status_code != 200:
-            return {"success": False, "error": f"HTTP {response.status_code}"}
-        
+
+        if response.status_code == 401:
+            return {"success": False, "error": "인증 실패: JIRA 토큰 유효성 확인 필요", "status_code": 401}
+        elif response.status_code == 403:
+            return {"success": False, "error": "접근 권한 없음", "status_code": 403}
+        elif response.status_code != 200:
+            return {"success": False, "error": f"HTTP {response.status_code}", "status_code": response.status_code}
+
         output_dir.mkdir(parents=True, exist_ok=True)
         file_path = output_dir / filename
-        
+
         with open(file_path, 'wb') as f:
             for chunk in response.iter_content(chunk_size=8192):
                 f.write(chunk)
-        
+
         file_size = file_path.stat().st_size
-        
+
         return {
             "success": True,
             "filename": filename,
             "file_path": str(file_path),
             "size": file_size,
         }
-    
+
+    except requests.ConnectionError as e:
+        return {"success": False, "error": f"네트워크 연결 실패: {str(e)}"}
+    except requests.Timeout as e:
+        return {"success": False, "error": f"요청 시간 초과: {str(e)}"}
+    except OSError as e:
+        return {"success": False, "error": f"파일 쓰기 실패: {str(e)}"}
     except Exception as e:
-        return {"success": False, "error": str(e)}
+        return {"success": False, "error": f"예상 치 못한 오류: {str(e)}"}
+
+def sanitize_filename(filename: str) -> str:
+    """파일명에서 경로 조작 문자 제거 및 검증"""
+    # 경로 조작 문자 제거
+    filename = filename.replace("../", "").replace("..\\", "").replace("..", "")
+    # 경로 분리자 제거
+    filename = filename.replace("/", "_").replace("\\", "_")
+    # 특수문자 제거 (안전한 문자만 유지)
+    filename = re.sub(r'[<>:"|?*]', '_', filename)
+    # 빈 문자열 방지
+    return filename if filename.strip() else "document"
 
 def extract_confluence_urls(text: str):
     """텍스트에서 Confluence URL 추출"""
@@ -115,16 +144,24 @@ def download_confluence_page(page_id: str, output_dir: Path):
         url = f"{JIRA_INSTANCE}/wiki/rest/api/content/{page_id}?expand=body.view"
         response = requests.get(url, auth=auth, headers={"Accept": "application/json"}, timeout=30)
 
-        if response.status_code != 200:
-            return None
+        if response.status_code == 401:
+            return {"success": False, "error": "인증 실패: JIRA 토큰 유효성 확인 필요"}
+        elif response.status_code == 403:
+            return {"success": False, "error": "Confluence 페이지 접근 권한 없음"}
+        elif response.status_code == 404:
+            return {"success": False, "error": f"페이지를 찾을 수 없음: {page_id}"}
+        elif response.status_code != 200:
+            return {"success": False, "error": f"HTTP {response.status_code}"}
 
         page_data = response.json()
         title = page_data.get("title", f"page_{page_id}")
+        # 파일명 sanitization (경로 조작 문자 제거)
+        safe_title = sanitize_filename(title)
         html = page_data.get("body", {}).get("view", {}).get("value", "")
         markdown = f"# {title}\n\n{html}"
 
         output_dir.mkdir(parents=True, exist_ok=True)
-        md_file = output_dir / f"{title}.md"
+        md_file = output_dir / f"{safe_title}.md"
         md_file.write_text(markdown, encoding='utf-8')
 
         return {
@@ -133,15 +170,29 @@ def download_confluence_page(page_id: str, output_dir: Path):
             "file": str(md_file),
             "size": len(markdown),
             "content": markdown,
+            "success": True,
         }
 
+    except requests.ConnectionError as e:
+        return {"success": False, "error": f"네트워크 연결 실패: {str(e)}"}
+    except requests.Timeout as e:
+        return {"success": False, "error": f"요청 시간 초과: {str(e)}"}
+    except OSError as e:
+        return {"success": False, "error": f"파일 쓰기 실패: {str(e)}"}
     except Exception as e:
-        return None
+        return {"success": False, "error": f"예상 치 못한 오류: {str(e)}"}
 
 def main():
     print("\n" + "="*70)
     print("📋 /sdd-collect with Confluence Sync (v4)")
     print("="*70)
+
+    # 필수 환경변수 검증
+    try:
+        validate_credentials()
+    except ValueError as e:
+        print(f"✗ 설정 오류: {e}")
+        sys.exit(1)
 
     workspace = Path("/Users/ai/vscode/egov-demo/docs/00. confluence")
     workspace.mkdir(parents=True, exist_ok=True)
