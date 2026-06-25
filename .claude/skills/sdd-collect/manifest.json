@@ -1,0 +1,80 @@
+{
+  "name": "sdd-collect",
+  "displayName": "SDD 문서 수집",
+  "description": "JIRA에서 지정된 상태의 문서를 수집하여 Workspace를 생성합니다",
+  "version": "1.0.0",
+  "author": "Claude Code",
+  "category": "sdd",
+  "keywords": ["sdd", "jira", "document", "collection", "workflow"],
+
+  "parameters": {
+    "status": {
+      "type": "string",
+      "description": "JIRA Kanban 상태 (예: 내부검토, 보완완료)",
+      "required": true,
+      "examples": ["내부검토", "요구사항보완", "설계검토"]
+    },
+    "document_types": {
+      "type": "string",
+      "description": "수집할 문서 종류 (쉼표 구분, 예: 요구사항정의서,유스케이스정의서)",
+      "required": true,
+      "examples": ["요구사항정의서", "요구사항정의서,유스케이스정의서,컴포넌트정의서"]
+    },
+    "workspace": {
+      "type": "string",
+      "description": "Workspace 저장 위치 (기본: /tmp/sdd-workspaces)",
+      "required": true,
+      "default": "/tmp/sdd-workspaces"
+    },
+    "requirement_id": {
+      "type": "string",
+      "description": "요구사항 ID (선택사항, 예: REQ-001)",
+      "required": false,
+      "pattern": "^[A-Z0-9-]*$"
+    }
+  },
+
+  "validation": {
+    "status": {
+      "minLength": 2,
+      "message": "상태를 입력해주세요 (예: 내부검토)"
+    },
+    "document_types": {
+      "minLength": 2,
+      "message": "문서 종류를 입력해주세요 (쉼표 구분)"
+    },
+    "workspace": {
+      "minLength": 1,
+      "message": "저장 위치를 입력해주세요 (기본: /tmp/sdd-workspaces)"
+    }
+  },
+
+  "examples": [
+    {
+      "description": "기본 예시: 내부검토 상태의 요구사항 문서 수집",
+      "input": {
+        "status": "내부검토",
+        "document_types": "요구사항정의서",
+        "workspace": "/tmp/sdd-workspaces"
+      },
+      "output": "Run ID: RUN-20260611-ABC"
+    },
+    {
+      "description": "다중 문서 타입 수집",
+      "input": {
+        "status": "내부검토",
+        "document_types": "요구사항정의서,유스케이스정의서,컴포넌트정의서",
+        "workspace": "/tmp/sdd-workspaces",
+        "requirement_id": "REQ-001"
+      },
+      "output": "Run ID: RUN-20260611-K7F, 수집된 문서: 6개"
+    }
+  ],
+
+  "relatedSkills": ["sdd-normalize", "sdd-specify", "sdd-plan", "sdd-tasks"],
+
+  "documentation": {
+    "guide": "./README.md",
+    "prompt": "./prompt.md"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "name": "sdd-plan",
+  "displayName": "SDD Plan (설계 계획)",
+  "description": "요구사항을 기반으로 구현 계획 및 설계 문서를 자동 생성합니다",
+  "version": "1.0.0",
+  "author": "Claude Code",
+  "category": "sdd",
+  "keywords": ["sdd", "plan", "design", "architecture"],
+
+  "parameters": {
+    "run_id": {
+      "type": "string",
+      "description": "실행 ID 또는 Workspace 경로",
+      "required": true,
+      "examples": ["/tmp/sdd-workspaces/REQ-001"]
+    }
+  },
+
+  "validation": {
+    "run_id": {
+      "minLength": 1,
+      "message": "Run ID 또는 경로를 입력해주세요"
+    }
+  },
+
+  "outputs": [
+    "plan.md (구현 계획 - Phase별 작업)",
+    "component_spec.md (컴포넌트 설계)",
+    "data_model.md (데이터베이스 모델)",
+    "TDD.md (테스트 전략)"
+  ],
+
+  "relatedSkills": ["sdd-specify", "sdd-tasks"],
+
+  "prerequisites": [
+    {
+      "skill": "sdd-specify",
+      "reason": "Specify 완료 후 Plan을 실행해야 합니다"
+    }
+  ],
+
+  "documentation": {
+    "guide": "./README.md"
+  }
+}
