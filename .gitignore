@@ -18,3 +18,8 @@
 
 # Claude worktrees (내장 저장소 — 커밋 제외)
 .claude/worktrees/
+
+# Python 캐시
+__pycache__/
+**/__pycache__/
+*.pyc

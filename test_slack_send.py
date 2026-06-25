@@ -1,12 +1,29 @@
 #!/usr/bin/env python3
 """Slack 알림 테스트 - Claude AI 메시지 전송"""
 
+import os
 import requests
 import json
 from datetime import datetime
+from pathlib import Path
 
-# Slack Webhook URL
-WEBHOOK_URL = "https://hooks.slack.com/services/<REDACTED-WEBHOOK>"
+
+def load_webhook_url():
+    """Webhook URL을 환경변수에서 읽는다. 없으면 저장소 루트 .env 에서 보조 로드."""
+    url = os.getenv("SLACK_WEBHOOK_URL")
+    if url:
+        return url
+    env_path = Path(__file__).resolve().parent / ".env"
+    if env_path.exists():
+        for line in env_path.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if line.startswith("SLACK_WEBHOOK_URL=") and not line.startswith("#"):
+                return line.split("=", 1)[1].strip().strip('"').strip("'")
+    return None
+
+
+# Slack Webhook URL (환경변수 SLACK_WEBHOOK_URL 또는 .env 에서 로드 — 하드코딩 금지)
+WEBHOOK_URL = load_webhook_url()
 
 def send_slack_message(webhook_url, payload):
     """Slack 메시지 전송"""
@@ -92,6 +109,12 @@ def main():
         ]
     }
     
+    if not WEBHOOK_URL:
+        print("❌ SLACK_WEBHOOK_URL 미설정")
+        print("   설정: export SLACK_WEBHOOK_URL=\"...\"  또는  .env 에 SLACK_WEBHOOK_URL 추가")
+        print("   템플릿: .env.example 참고")
+        return False
+
     print("📤 Slack 메시지 전송 중...\n")
     print(f"Webhook URL: {WEBHOOK_URL[:50]}...")
     print(f"페이로드: {json.dumps(payload, ensure_ascii=False, indent=2)[:200]}...")

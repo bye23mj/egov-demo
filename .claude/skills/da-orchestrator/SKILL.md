@@ -14,15 +14,30 @@ allowed-tools: Read, Write, Grep, Glob, Bash, Skill, Agent, SendMessage
 - 팀(`TeamCreate`) 모드가 아니다 — 단계가 이전 결과에 의존하므로 **순차 실행 + 환류**한다.
 - **Agent 호출 시 model 명시**: `metadata-agent`는 `Agent(subagent_type: "metadata-agent", model: "sonnet")`로 호출한다(표준 판정은 sonnet으로 충분, 비용 효율 — agent-design-patterns의 opus 권고에 대한 의도적 절충). 스킬 단계는 `Skill` 도구로 호출한다.
 
-## 실시간 모니터링 (진행 가시화·게이트)
+## 실시간 모니터링 (진행 가시화·게이트·Slack 공유)
 
-오케스트레이터는 위임 워크플로우의 진행 상태를 **TodoWrite + 산출물 파일**로 실시간 추적한다.
+오케스트레이터는 위임 워크플로우의 진행 상태를 **TodoWrite + 산출물 파일**로 실시간 추적하고, 동시에 **Slack webhook으로 공유**한다.
 
 - **TodoWrite로 7단계 등록**: Phase 1 진입 시 7개 단계(데이터모델링→표준화검토→데이터구조검증→산출물관리→변경관리→품질관리→데이터분석)를 TodoList로 등록한다. 부분 재실행 시에는 재실행 대상 단계와 하위 의존 단계만 등록한다.
 - **단계 경계마다 갱신**: 단계 진입 시 해당 항목을 `in_progress`, 산출물 생성·게이트 통과 시 `completed`로 즉시 갱신한다. 동시에 `in_progress`는 1개만 유지한다.
 - **게이트 환류 시 되돌림**: 3·6 게이트에서 `보완/부적합/NCR`로 환류하면, 환류 대상 단계(1·2 등)를 다시 `in_progress`로 되돌리고 재실행 결과를 반영한다.
 - **산출물 파일 = 완료 신호**: 각 단계 완료는 작업공간의 산출물 파일 존재·내용(Read/Glob)으로 검증한다. TodoWrite `completed` 표시 전에 해당 산출물 존재를 확인한다(표시만 하고 파일 없는 상태 금지).
 - **metadata-agent 환류는 SendMessage**: 2단계 `확인 필요` 발생 시 동일 에이전트에 `SendMessage`로 재질의하여 컨텍스트를 유지한다(새 `Agent` 호출로 재시작하지 않는다).
+
+### Slack webhook 진행 공유 (TodoWrite와 동시 수행)
+
+TodoWrite를 갱신하는 **모든 시점에 동일 내용을 Slack으로도 발송**한다. 발송은 `scripts/da_progress_notify.py`로 수행하며, `SLACK_WEBHOOK_URL`(환경변수 또는 루트 `.env`)이 없으면 **자동으로 건너뛴다(파이프라인 비차단)**.
+
+| 시점 | 명령 |
+|---|---|
+| Phase 1 진입(TodoList 등록 직후) | `python3 scripts/da_progress_notify.py start --reqid {요구사항번호} --steps "1.데이터모델링,2.표준화검토,3.데이터구조검증,4.산출물관리,5.변경관리,6.품질관리,7.데이터분석"` |
+| 단계 진입(`in_progress`로 갱신 시) | `python3 scripts/da_progress_notify.py step --reqid {요구사항번호} --step "{N.단계명}" --status in_progress` |
+| 단계 완료(산출물 확인 후 `completed`) | `python3 scripts/da_progress_notify.py step --reqid {요구사항번호} --step "{N.단계명}" --status completed --note "{핵심결과}"` |
+| 게이트 환류(되돌림) | `... step --step "{N.단계명}" --status in_progress --note "환류: {사유}"` |
+| Phase 8 완료 | `python3 scripts/da_progress_notify.py done --reqid {요구사항번호} --note "{산출물·미결 요약}"` |
+
+- 발송은 **TodoWrite 갱신과 1:1로 짝지어** 호출한다(누락 금지). 발송 실패·미설정은 진행을 막지 않는다.
+- 토큰을 명령에 직접 쓰지 않는다 — 항상 `SLACK_WEBHOOK_URL`(`.env`, gitignore됨)에서 로드한다.
 
 ## 사용 시점
 

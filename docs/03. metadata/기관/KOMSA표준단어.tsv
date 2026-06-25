@@ -4,3 +4,4 @@
 3	계선	LAYUP	Lay Up	선박 계선(운항정지) 상태	N	여부			1			
 4	주기관	MENG	Main Engine	선박 추진 주기관	N	명칭			1			
 5	특	SPCL	Special	특등급 등 특별 구분	Y	명칭	특별		1			
+6	정원	PSCP	Personnel Capacity	수용 가능한 인원 정원	Y	수량			1			
