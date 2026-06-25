@@ -1,0 +1,80 @@
+{
+  "name": "sdd-sync",
+  "displayName": "SDD Sync (결과 동기화)",
+  "description": "생성된 명세/설계/작업을 JIRA/Confluence/Slack에 자동 동기화",
+  "version": "1.0.0",
+  "author": "Claude Code",
+  "category": "sdd",
+  "keywords": ["sdd", "sync", "jira", "confluence", "slack"],
+
+  "parameters": {
+    "issue_key": {
+      "type": "string",
+      "description": "JIRA 이슈 키",
+      "required": true,
+      "examples": ["GOVPJT-101"]
+    },
+    "run_id": {
+      "type": "string",
+      "description": "실행 ID 또는 Workspace 경로",
+      "required": true,
+      "examples": ["/tmp/sdd-workspaces/REQ-001"]
+    },
+    "project_key": {
+      "type": "string",
+      "description": "JIRA 프로젝트 키",
+      "required": true,
+      "examples": ["GOVPJT"]
+    }
+  },
+
+  "validation": {
+    "issue_key": {
+      "pattern": "^[A-Z]+-\\d+$",
+      "message": "유효한 JIRA 이슈 키 (예: GOVPJT-101)"
+    },
+    "run_id": {
+      "minLength": 1,
+      "message": "Run ID 또는 경로를 입력해주세요"
+    },
+    "project_key": {
+      "minLength": 1,
+      "message": "프로젝트 키를 입력해주세요"
+    }
+  },
+
+  "outputs": [
+    "JIRA 이슈에 명세/설계/작업 첨부",
+    "Confluence 페이지 자동 생성",
+    "Slack 완료 알림 전송",
+    "phase4-execution.json (실행 로그)"
+  ],
+
+  "prerequisites": [
+    {
+      "skill": "sdd-tasks",
+      "reason": "Tasks 완료 후 Sync를 실행해야 합니다"
+    }
+  ],
+
+  "relatedSkills": ["sdd-collect", "sdd-normalize", "sdd-specify", "sdd-plan", "sdd-tasks"],
+
+  "features": {
+    "jira_sync": {
+      "description": "JIRA 이슈에 문서 첨부 및 주석 추가",
+      "files": ["requirements.md", "spec.md", "edge_cases.md", "plan.md", "component_spec.md", "data_model.md", "TDD.md", "tasks.md"],
+      "actions": ["attachment", "comment", "status_transition"]
+    },
+    "confluence_sync": {
+      "description": "Confluence에 페이지 자동 생성",
+      "pages": ["Requirements", "Specification", "Planning", "Component Design", "Data Model", "TDD Strategy", "Task Breakdown"]
+    },
+    "slack_sync": {
+      "description": "Slack 채널로 완료 보고",
+      "content": ["Summary", "Statistics", "Generated Files", "Next Steps"]
+    }
+  },
+
+  "documentation": {
+    "guide": "./README.md"
+}

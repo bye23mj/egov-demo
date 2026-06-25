@@ -1,0 +1,20 @@
+
+# DB 로컬 비밀번호 (커밋 금지)
+.env
+**/.env
+
+# OS 정크
+.DS_Store
+**/.DS_Store
+
+# 로그 / 동기화 로그
+*.log
+**/*.log
+
+# SQL*Loader 런타임 산출물 (재생성 가능)
+**/*.dat
+**/*.bad
+**/*.dsc
+
+# Claude worktrees (내장 저장소 — 커밋 제외)
+.claude/worktrees/

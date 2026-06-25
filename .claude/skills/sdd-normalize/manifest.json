@@ -1,0 +1,115 @@
+{
+  "name": "sdd-normalize",
+  "displayName": "SDD 문서 정규화",
+  "description": "수집된 문서를 Markdown으로 자동 정규화합니다 (DOCX/XLSX/PPTX/PDF)",
+  "version": "1.0.0",
+  "author": "Claude Code",
+  "category": "sdd",
+  "keywords": ["sdd", "normalize", "markdown", "document-conversion"],
+
+  "parameters": {
+    "workspace": {
+      "type": "string",
+      "description": "Workspace 저장 위치",
+      "required": true,
+      "default": "/tmp/sdd-workspaces",
+      "examples": ["/tmp/sdd-workspaces", "/workspace/projects"]
+    },
+    "requirement_id": {
+      "type": "string",
+      "description": "요구사항 ID (이 ID로 경로 구성)",
+      "required": true,
+      "pattern": "^[A-Z0-9-]+$",
+      "examples": ["REQ-001", "GOVPJT-101", "RUN-20260611-K7F"]
+    }
+  },
+
+  "validation": {
+    "workspace": {
+      "minLength": 1,
+      "message": "저장 위치를 입력해주세요 (예: /tmp/sdd-workspaces)"
+    },
+    "requirement_id": {
+      "minLength": 1,
+      "pattern": "^[A-Z0-9-]+$",
+      "message": "요구사항 ID를 입력해주세요 (영문자/숫자/하이픈, 예: REQ-001)"
+    }
+  },
+
+  "pathConstruction": {
+    "description": "입력 파라미터를 조합하여 경로를 생성합니다",
+    "formula": "{workspace}/{requirement_id}",
+    "inputDir": "{workspace}/{requirement_id}/input",
+    "outputDir": "{workspace}/{requirement_id}/normalized"
+  },
+
+  "supportedFormats": [
+    {
+      "format": "DOCX",
+      "library": "python-docx",
+      "output": "Markdown + 테이블"
+    },
+    {
+      "format": "XLSX",
+      "library": "openpyxl",
+      "output": "Markdown Table"
+    },
+    {
+      "format": "PPTX",
+      "library": "python-pptx",
+      "output": "Markdown (슬라이드별)"
+    },
+    {
+      "format": "HWPX",
+      "library": "zipfile",
+      "output": "Markdown (부분)"
+    },
+    {
+      "format": "PDF",
+      "library": "PyPDF2",
+      "output": "Markdown (텍스트)"
+    }
+  ],
+
+  "examples": [
+    {
+      "description": "기본 예시: REQ-001 정규화",
+      "input": {
+        "workspace": "/tmp/sdd-workspaces",
+        "requirement_id": "REQ-001"
+      },
+      "pathConstruction": {
+        "full_path": "/tmp/sdd-workspaces/REQ-001",
+        "input_dir": "/tmp/sdd-workspaces/REQ-001/input",
+        "output_dir": "/tmp/sdd-workspaces/REQ-001/normalized"
+      },
+      "output": "총 파일: 3개, 성공: 3개"
+    },
+    {
+      "description": "Run ID로 정규화",
+      "input": {
+        "workspace": "/tmp/sdd-workspaces",
+        "requirement_id": "RUN-20260611-K7F"
+      },
+      "pathConstruction": {
+        "full_path": "/tmp/sdd-workspaces/RUN-20260611-K7F",
+        "input_dir": "/tmp/sdd-workspaces/RUN-20260611-K7F/input",
+        "output_dir": "/tmp/sdd-workspaces/RUN-20260611-K7F/normalized"
+      }
+    }
+  ],
+
+  "relatedSkills": ["sdd-collect", "sdd-specify", "sdd-plan", "sdd-tasks"],
+
+  "prerequisites": [
+    {
+      "skill": "sdd-collect",
+      "reason": "먼저 sdd-collect로 문서를 수집해야 함"
+    }
+  ],
+
+  "documentation": {
+    "guide": "./README.md",
+    "prompt": "./prompt.md"
+  }
+}

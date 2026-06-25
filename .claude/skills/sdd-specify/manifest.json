@@ -1,0 +1,61 @@
+{
+  "name": "sdd-specify",
+  "displayName": "SDD Specify (요구사항 체계화)",
+  "description": "정규화된 문서를 기반으로 requirements.md와 spec.md를 자동 생성합니다",
+  "version": "1.0.0",
+  "author": "Claude Code",
+  "category": "sdd",
+  "keywords": ["sdd", "specify", "requirements", "specification"],
+
+  "parameters": {
+    "run_id": {
+      "type": "string",
+      "description": "실행 ID 또는 Workspace 경로",
+      "required": true,
+      "examples": ["/tmp/sdd-workspaces/REQ-001", "/tmp/sdd-workspaces/RUN-20260611-K7F"]
+    }
+  },
+
+  "validation": {
+    "run_id": {
+      "minLength": 1,
+      "message": "Run ID 또는 경로를 입력해주세요 (예: REQ-001 또는 /tmp/sdd-workspaces/REQ-001)"
+    }
+  },
+
+  "pathConstruction": {
+    "description": "입력값을 그대로 사용하거나 workspace/requirement_id 조합",
+    "examples": [
+      "/tmp/sdd-workspaces/REQ-001",
+      "/tmp/sdd-workspaces/RUN-20260611-K7F"
+    ]
+  },
+
+  "outputs": [
+    "requirements.md (요구사항 정의)",
+    "spec.md (상세 명세)",
+    "edge_cases.md (모호한 항목 및 질문)"
+  ],
+
+  "examples": [
+    {
+      "input": {
+        "run_id": "/tmp/sdd-workspaces/REQ-001"
+      },
+      "output": "requirements.md, spec.md, edge_cases.md 생성 (3개 파일)"
+    }
+  ],
+
+  "relatedSkills": ["sdd-collect", "sdd-normalize", "sdd-plan", "sdd-tasks"],
+
+  "prerequisites": [
+    {
+      "skill": "sdd-normalize",
+      "reason": "먼저 문서를 정규화해야 Specify를 실행할 수 있습니다"
+    }
+  ],
+
+  "documentation": {
+    "guide": "./README.md"
+  }
+}
