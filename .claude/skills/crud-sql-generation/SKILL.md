@@ -20,14 +20,45 @@ allowed-tools: Read, Write, Grep, Glob, Bash
 
 ## 생성 규칙
 
-- 테이블당 5종: **목록조회(페이징)·단건조회·등록·수정·삭제**.
+- **DDL 동봉(self-contained)**: 각 테이블 스크립트는 **상단에 DDL(① CREATE TABLE ② CREATE INDEX ③ COMMENT(테이블·컬럼)) 을 함께 포함**하고, 그 아래 CRUD를 둔다. 한 파일만으로 테이블 생성~기본쿼리까지 재현 가능해야 한다.
+  - DDL 정의는 db-object-creation의 `ddl/`(컬럼정의서·생성 객체)와 **동일**해야 한다(불일치 금지).
+  - 시퀀스 채번 테이블은 `CREATE SEQUENCE`도 포함한다.
+  - 멱등성: DDL 앞에 `DROP`(가드)·`WHENEVER SQLERROR` 등 재실행 안전장치를 둔다(대상 DBMS 분기).
+- 테이블당 CRUD 5종: **목록조회(페이징)·단건조회·등록·수정·삭제**.
 - 컬럼명은 표준용어 영문약어명(생성 객체와 동일).
 - 바인드 변수 사용(SQL Injection 방지): Oracle `:param` / `#{param}`(MyBatis), PostgreSQL `$1` / `#{param}`.
 - 페이징·채번·UPSERT는 DBMS 분기.
 
+## 스크립트 구성 (DDL + CRUD 순서)
+
+```text
+sql/{테이블}_crud.sql
+├── [1] DDL — 테이블 생성   : (DROP 가드) CREATE TABLE / CREATE SEQUENCE
+├── [2] DDL — 인덱스        : CREATE INDEX / (PK·UK는 테이블 제약)
+├── [3] DDL — 코멘트        : COMMENT ON TABLE / COMMENT ON COLUMN (전 컬럼)
+└── [4] CRUD               : 목록조회·단건조회·등록·수정·삭제
+```
+
 ## Oracle 분기
 
 ```sql
+-- ============ [1~3] DDL: 테이블·인덱스·코멘트 (동봉) ============
+WHENEVER SQLERROR CONTINUE
+DROP TABLE MBER CASCADE CONSTRAINTS;
+DROP SEQUENCE SEQ_MBER;
+WHENEVER SQLERROR EXIT SQL.SQLCODE
+CREATE TABLE MBER (
+  MBER_NO  NUMBER       NOT NULL,
+  MBER_NM  VARCHAR2(60) NOT NULL,
+  CONSTRAINT PK_MBER PRIMARY KEY (MBER_NO)
+);
+CREATE SEQUENCE SEQ_MBER START WITH 1 INCREMENT BY 1 NOCACHE;
+CREATE INDEX IX_MBER_NM ON MBER (MBER_NM);
+COMMENT ON TABLE  MBER         IS '회원';
+COMMENT ON COLUMN MBER.MBER_NO IS '회원번호';
+COMMENT ON COLUMN MBER.MBER_NM IS '회원명';
+
+-- ============ [4] CRUD ============
 -- 목록조회 (ROWNUM 3중 페이징)
 SELECT * FROM (
   SELECT ROWNUM RN, A.* FROM (
@@ -83,7 +114,8 @@ INSERT INTO app.mber (mber_no, mber_nm) VALUES ($1, $2)
 
 ## 산출물
 
-- 테이블별 `sql/{테이블}_crud.sql`(대상 DBMS 분기), 필요 시 `mapper/{Domain}Mapper.xml`
+- 테이블별 `sql/{테이블}_crud.sql` — **DDL(테이블 생성·인덱스·코멘트) + CRUD 동봉**(대상 DBMS 분기), 필요 시 `mapper/{Domain}Mapper.xml`
+- DDL 부분은 db-object-creation `ddl/`와 정의 일치(같은 컬럼·타입·제약·인덱스·코멘트)
 
 ## 경계
 

@@ -25,7 +25,7 @@ da-agent(설계)의 산출물을 입력으로, 실제 DB를 구축·운영하는
 |---|---|---|---|---|
 | 1. 인프라 프로비저닝 | Skill | `db-provisioning` | 대상 DBMS | `docker-compose.db.yml`, 접속정보 |
 | 2. DB 객체 생성 | Skill | `db-object-creation` | da-agent 산출물·접속정보 | `ddl/*.sql`, 생성객체 목록 |
-| 3. 기본 CRUD 제공 | Skill | `crud-sql-generation` | 컬럼정의서·생성객체 | `sql/{테이블}_crud.sql` |
+| 3. 기본 CRUD 제공 | Skill | `crud-sql-generation` | 컬럼정의서·생성객체 | `sql/{테이블}_crud.sql` (**DDL: 테이블생성·인덱스·코멘트 동봉** + CRUD) |
 
 > 1단계는 ECC `docker-patterns`, 2·3단계는 `postgres-patterns`·`database-migrations`(현지화 `db-migrations`)를 참고 베이스로 한다. ECC 원본은 보존되어 있다.
 
@@ -47,7 +47,7 @@ docs/05. db-build/{요구사항번호}/
 ├── .env.example                         # 1 (키만, 값 제외)
 ├── ddl/{순번}_{객체}.sql (+ drop)        # 2 객체생성
 ├── build-objects.md                     # 2 생성객체·검증 결과
-└── sql/{테이블}_crud.sql                 # 3 CRUD
+└── sql/{테이블}_crud.sql                 # 3 DDL(테이블생성·인덱스·코멘트) + CRUD 동봉
 ```
 - 비밀번호는 `.env`(미커밋)로 주입. 중간 산출물·실행로그를 보존한다.
 
@@ -62,7 +62,7 @@ docs/05. db-build/{요구사항번호}/
 ### Phase 1~3: 단계 위임 (게이트)
 1. **프로비저닝**: `db-provisioning` → 컨테이너 기동·healthcheck 통과 확인. **미통과 시 2단계 보류**(게이트).
 2. **객체 생성**: `db-object-creation` → 의존 순서대로 DDL 실행, 컬럼정의서와 대조 검증. **불일치/오류 시 3단계 보류**(게이트), da-agent 산출물로 환류.
-3. **CRUD 제공**: `crud-sql-generation` → 테이블별 CRUD SQL(+선택 Mapper) 생성.
+3. **CRUD 제공**: `crud-sql-generation` → 테이블별 스크립트를 **self-contained**로 생성한다. 즉 **CREATE TABLE·CREATE INDEX·COMMENT(테이블·컬럼) DDL을 상단에 함께 포함**하고 그 아래 CRUD 5종을 둔다. DDL은 2단계 `ddl/`와 정의가 일치해야 한다(+선택 Mapper).
 
 ### Phase 4: 정리
 1. 생성 객체·CRUD 산출물 목록을 취합한다.
@@ -78,7 +78,7 @@ da-agent 산출물(테이블/컬럼정의서·migrations)
         │
    Skill─ db-object-creation ─→ ddl/ 실행 → 생성객체 (정의서 대조 게이트)
         │
-   Skill─ crud-sql-generation ─→ sql/{테이블}_crud.sql
+   Skill─ crud-sql-generation ─→ sql/{테이블}_crud.sql (DDL: 테이블·인덱스·코멘트 + CRUD 동봉)
         ↓
    [DBA: Phase 4 취합·보고]
 ```
