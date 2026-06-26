@@ -59,26 +59,38 @@ class ConfluenceConfig:
         """설정값 조회"""
         return self.config.get(key, default)
 
+    # Atlassian 토큰은 계정 단위라 Confluence/Jira 공용. 아래 키들을 우선순위로 탐색.
+    TOKEN_KEYS = ("CONFLUENCE_API_TOKEN", "CONFLUENCE_TOKEN", "JIRA_TOKEN", "JIRA_API_TOKEN")
+
     def get_token(self) -> str:
-        """토큰 조회 (환경변수 → .env 파일 → 저장된 값)"""
-        # 우선순위 1: 환경변수
-        token = os.getenv("CONFLUENCE_TOKEN")
-        if token:
-            return token
-        # 우선순위 2: ~/.confluence-sync/.env 파일
-        env_file = self.CONFIG_DIR / ".env"
-        if env_file.exists():
-            with open(env_file, "r") as f:
-                for line in f:
+        """토큰 조회 (환경변수 → 저장소 루트 .env → ~/.confluence-sync/.env → 저장된 값)."""
+        # 1: 환경변수 (env_loader 가 저장소 .env 를 os.environ 으로 적재한 상태 포함)
+        for key in self.TOKEN_KEYS:
+            token = os.getenv(key)
+            if token:
+                return token
+        # 2: .env 파일들 (저장소 루트 + ~/.confluence-sync)
+        env_files = []
+        _r = Path(__file__).resolve()
+        while _r.parent != _r:
+            if (_r / ".env").is_file():
+                env_files.append(_r / ".env")
+                break
+            _r = _r.parent
+        env_files.append(self.CONFIG_DIR / ".env")
+        for env_file in env_files:
+            if env_file.exists():
+                for line in env_file.read_text(encoding="utf-8").splitlines():
                     line = line.strip()
-                    if line.startswith("CONFLUENCE_TOKEN="):
-                        token = line.split("=", 1)[1].strip()
-                        if token:
-                            return token
-        # 우선순위 3: 저장된 설정값
+                    if line.startswith("#") or "=" not in line:
+                        continue
+                    k, v = line.split("=", 1)
+                    if k.strip() in self.TOKEN_KEYS and v.strip():
+                        return v.strip().strip('"').strip("'")
+        # 3: 저장된 설정값
         token = self.config.get("token")
         if not token:
-            raise ValueError("Confluence token not found. Run: python scripts/confluence-sync.py config --set-token <token>")
+            raise ValueError("Confluence token not found. .env 에 CONFLUENCE_API_TOKEN 또는 JIRA_TOKEN 설정")
         return token
 
     def display(self):

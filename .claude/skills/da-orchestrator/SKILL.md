@@ -56,8 +56,10 @@ TodoWrite를 갱신하는 **모든 시점에 동일 내용을 Slack으로도 발
 | 5. 변경관리 | Skill | `db-decision-records` + `db-migrations` | 결정·변경·DBMS | `adr/*.md`, `migrations/*.sql` |
 | 6. 품질관리 | Skill | `data-quality-management` | 산출물 전체 | `…-데이터품질부적합대장.xlsx` |
 | 7. 데이터분석 | Skill | `data-analysis` | 확정 모델·산출물 | `…-데이터분석노트.md` |
+| 9. 산출물등록(요청 시) | Skill | `confluence-integration` + `scripts/upload_pages_in_folders.py` | 생성 산출물(폴더) | Confluence 페이지+첨부(링크 포함) |
 
 > 3·5·6·7 스킬은 ECC 원본(`architecture-decision-records`·`database-migrations`·`quality-nonconformance`)을 공공DB로 현지화한 버전이다. ECC 원본은 방법론 참조용으로 보존되어 있다.
+> 9는 **요청 시에만** 수행하는 외부 발행 단계다(Phase 9 참조).
 
 ## 작업공간 (절대 경로)
 
@@ -114,6 +116,16 @@ docs/04. db-deliverables/{요구사항번호}/
 3. 미결(보완/부적합/NCR) 0건인지 확인한다. 남아 있으면 미결 명시.
 4. **TodoList 전 항목이 `completed`인지 확인**한다(미완 항목이 남았으면 해당 단계 보류 사유를 보고에 명시).
 5. 작업공간을 보존하고 사용자에게 결과 요약(생성 산출물·미결·다음 액션)을 보고한다.
+
+### Phase 9: 산출물 Confluence 등록 (요청 시)
+
+산출물을 Confluence에 등록해야 하면 **반드시 전용 업로드 기능으로 올린다**(임의 API 호출·수작업 금지). 자세한 절차·인증은 [[confluence-integration]] 스킬을 따른다.
+
+- **업로드 도구**: `scripts/upload_pages_in_folders.py` — 디렉터리 구조를 Confluence 폴더로 미러하고, **파일 있는 폴더마다 페이지를 만들어 첨부 + 본문에 첨부 링크(전체보기·파일별 다운로드)** 를 추가한다. 멱등(재실행 안전)·다운로드 검증·무결성 재검증 내장.
+- **대상**: 기본 폴더 `TARGET_FOLDER_ID`(현재 "데이터모델링", space TNYUU). 다른 위치면 스크립트 상수만 변경한다.
+- **인증**: `.env`(`JIRA_TOKEN`/`CONFLUENCE_*`)에서 로드(`env_loader`). 토큰을 명령·코드에 노출하지 않는다.
+- **보안 제외**: `.env`(DB 비번)·`.dat`(대용량 덤프)·`.DS_Store`는 업로드하지 않는다(스크립트 기본 제외).
+- **확인 후 실행**: 외부 발행이므로 `--dry-run`으로 페이지·첨부 계획을 먼저 보고하고, 사용자 확인 후 실제 업로드한다. 업로드 후 **무결성 재검증 결과(페이지·첨부 일치)** 를 보고한다.
 
 ## 데이터 흐름
 

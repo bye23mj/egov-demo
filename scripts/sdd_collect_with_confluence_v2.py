@@ -3,6 +3,19 @@
 /sdd-collect with Confluence Sync (v2)
 JIRA 이슈 수집 + Confluence 콘텐츠 동기화 + REQID 기반 폴더 구조
 """
+# === .env 자동 로드 (의존성 없음) ===
+import sys as _sys
+from pathlib import Path as _Path
+_root = _Path(__file__).resolve()
+while _root.parent != _root and not (_root / '.env').is_file():
+    _root = _root.parent
+_sys.path.insert(0, str(_root))
+try:
+    from env_loader import load_env as _load_env
+    _load_env()
+except Exception:
+    pass
+# === /.env 자동 로드 ===
 
 import os
 import json

@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "atlassian": {
+      "command": "uvx",
+      "args": ["mcp-atlassian==0.21.0"],
+      "env": {
+        "JIRA_URL": "https://nsonesoft.atlassian.net",
+        "JIRA_USERNAME": "${JIRA_EMAIL}",
+        "JIRA_API_TOKEN": "${JIRA_TOKEN}",
+        "CONFLUENCE_URL": "https://nsonesoft.atlassian.net/wiki",
+        "CONFLUENCE_USERNAME": "${JIRA_EMAIL}",
+        "CONFLUENCE_API_TOKEN": "${JIRA_TOKEN}"
+      },
+      "description": "Atlassian (Jira+Confluence) — mcp-atlassian. 토큰은 .env(JIRA_EMAIL/JIRA_TOKEN)에서 주입"
+    }
+  }
+}

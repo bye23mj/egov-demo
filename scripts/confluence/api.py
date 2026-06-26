@@ -41,13 +41,17 @@ class ConfluenceAPI:
         return session
 
     def _url(self, path: str) -> str:
-        """API URL 생성"""
+        """API URL 생성 (v2)"""
         return urljoin(self.base_url, f"/wiki/api/v2/{path}")
 
+    def _url_v1(self, path: str) -> str:
+        """API URL 생성 (v1) — 일부 인스턴스에서 v2가 404라 v1 사용"""
+        return urljoin(self.base_url, f"/wiki/rest/api/{path}")
+
     def test_connection(self) -> bool:
-        """연결 테스트"""
+        """연결 테스트 (v1 space 엔드포인트 — v2 spaces가 404인 인스턴스 대응)"""
         try:
-            response = self.session.get(self._url("spaces"), params={"limit": 1})
+            response = self.session.get(self._url_v1("space"), params={"limit": 1})
             response.raise_for_status()
             logger.info("✓ Confluence connection successful")
             return True

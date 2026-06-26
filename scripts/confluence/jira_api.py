@@ -67,15 +67,23 @@ class JiraConfig:
         if token:
             return token
 
-        env_file = self.CONFIG_DIR / ".env"
-        if env_file.exists():
-            with open(env_file, "r") as f:
-                for line in f:
-                    line = line.strip()
-                    if line.startswith("JIRA_TOKEN="):
-                        token = line.split("=", 1)[1].strip()
-                        if token:
-                            return token
+        # 폴백 대상: ~/.confluence-sync/.env + 저장소 루트 .env
+        env_files = [self.CONFIG_DIR / ".env"]
+        _r = Path(__file__).resolve()
+        while _r.parent != _r:
+            if (_r / ".env").is_file():
+                env_files.append(_r / ".env")
+                break
+            _r = _r.parent
+        for env_file in env_files:
+            if env_file.exists():
+                with open(env_file, "r") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line.startswith("JIRA_TOKEN="):
+                            token = line.split("=", 1)[1].strip().strip('"').strip("'")
+                            if token:
+                                return token
 
         token = self.config.get("token")
         if not token:
@@ -147,35 +155,32 @@ class JiraAPI:
         Returns:
             이슈 목록
         """
+        # Jira는 구 /rest/api/3/search 를 폐기(410)하고 /search/jql(토큰 페이지네이션)로 이관함
         all_issues = []
-        start_at = 0
+        next_page_token = None
 
         while True:
             params = {
                 "jql": jql,
-                "startAt": start_at,
                 "maxResults": max_results,
-                "expand": "changelog",
             }
-
             if fields:
                 params["fields"] = ",".join(fields)
+            if next_page_token:
+                params["nextPageToken"] = next_page_token
 
             try:
-                response = self.session.get(self._url("search"), params=params)
+                response = self.session.get(self._url("search/jql"), params=params)
                 response.raise_for_status()
                 data = response.json()
 
                 issues = data.get("issues", [])
                 all_issues.extend(issues)
+                logger.debug(f"✓ Fetched {len(issues)} issues (누적 {len(all_issues)})")
 
-                total = data.get("total", 0)
-                start_at += len(issues)
-
-                if start_at >= total or not issues:
+                next_page_token = data.get("nextPageToken")
+                if data.get("isLast", True) or not next_page_token or not issues:
                     break
-
-                logger.debug(f"✓ Fetched {len(issues)} issues (total: {total})")
 
             except requests.RequestException as e:
                 logger.error(f"✗ Failed to search issues: {e}")
