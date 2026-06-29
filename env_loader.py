@@ -12,12 +12,15 @@ from pathlib import Path
 
 
 def find_dotenv(start=None):
-    """start(또는 이 파일) 기준 상위로 올라가며 첫 .env 를 찾는다."""
+    """start(또는 이 파일) 기준 상위로 올라가며 첫 .env 를 찾는다.
+
+    표준 위치는 `<repo>/.claude/.env` 이며, 각 디렉터리에서 `.claude/.env` 를
+    먼저 확인하고 없으면 `.env`(루트, 하위호환)를 확인한다."""
     p = Path(start or __file__).resolve()
     for d in [p, *p.parents]:
-        f = d / ".env"
-        if f.is_file():
-            return f
+        for f in (d / ".claude" / ".env", d / ".env"):
+            if f.is_file():
+                return f
     return None
 
 

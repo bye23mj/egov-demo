@@ -27,7 +27,7 @@ da-agent(설계)의 산출물을 입력으로, 실제 DB를 구축·운영하는
 | 2. DB 객체 생성 | Skill | `db-object-creation` | da-agent 산출물·접속정보 | `ddl/*.sql`, 생성객체 목록 |
 | 3. 기본 CRUD 제공 | Skill | `crud-sql-generation` | 컬럼정의서·생성객체 | `sql/{테이블}_crud.sql` (**DDL: 테이블생성·인덱스·코멘트 동봉** + CRUD) |
 
-> 1단계는 ECC `docker-patterns`, 2·3단계는 `postgres-patterns`·`database-migrations`(현지화 `db-migrations`)를 참고 베이스로 한다. ECC 원본은 보존되어 있다.
+> 1단계는 ECC `docker-patterns`, 2·3단계는 `postgres-patterns`를 참고 베이스로 한다. 스키마 변경은 자족 스킬 `db-migrations`를 사용한다.
 
 ## 입력 (da-agent 연계)
 
@@ -63,6 +63,8 @@ docs/05. db-build/{요구사항번호}/
 1. **프로비저닝**: `db-provisioning` → 컨테이너 기동·healthcheck 통과 확인. **미통과 시 2단계 보류**(게이트).
 2. **객체 생성**: `db-object-creation` → 의존 순서대로 DDL 실행, 컬럼정의서와 대조 검증. **불일치/오류 시 3단계 보류**(게이트), da-agent 산출물로 환류.
 3. **CRUD 제공**: `crud-sql-generation` → 테이블별 스크립트를 **self-contained**로 생성한다. 즉 **CREATE TABLE·CREATE INDEX·COMMENT(테이블·컬럼) DDL을 상단에 함께 포함**하고 그 아래 CRUD 5종을 둔다. DDL은 2단계 `ddl/`와 정의가 일치해야 한다(+선택 Mapper).
+
+> **전략적 compact 체크포인트** ([[strategic-compact]]): DDL/CRUD 산출물은 파일로 보존된다. **2 객체생성 직후**(대량 DDL 실행 로그로 컨텍스트가 비대) 3단계 진입 전에 `/compact`를 제안한다. 게이트 보류로 da-agent 산출물 재검토 후 재진입할 때도 권장. 단계 **내부**(DDL 실행 중)에는 하지 않는다.
 
 ### Phase 4: 정리
 1. 생성 객체·CRUD 산출물 목록을 취합한다.

@@ -250,7 +250,7 @@ egov-ecc/
 ├─ agents/orchaorcahestrator
 │  ├─ pm-agent.md
 │  ├─ biz-management-agent.md
-│  ├─ egov-architectecture.md
+│  ├─ egov-architecture.md
 │  ├─ egov-DB-agent.md
 │  ├─ egov-design-agent.md
 │  ├─ egov-developer-agent.md
@@ -307,7 +307,6 @@ egov-ecc/
 │  └─ workspace/
 │
 ├─ run/
-│
 │
 └─ outputs/
    ├─ jira/

@@ -54,11 +54,17 @@ ROUTE = {
 
 
 def parse_command(text):
-    """멘션 텍스트에서 <@BOT> 제거 후 첫 명령어 추출."""
+    """멘션 텍스트에서 <@BOT> 제거 후 명령어 + 요구사항번호 추출.
+
+    형식: `@sejongDev {명령} {요구사항번호}` (요구사항번호 선택).
+    예: `@sejongDev 데이터모델링 MZ2026-15` → cmd=데이터모델링, reqid=MZ2026-15
+    요구사항번호가 없으면 reqid=명령어로 폴백(하위호환)."""
     cleaned = re.sub(r"<@[A-Z0-9]+>", "", text or "").strip()
-    cmd = cleaned.split()[0] if cleaned else ""
+    parts = cleaned.split()
+    cmd = parts[0] if parts else ""
+    reqid = parts[1] if len(parts) > 1 else cmd
     agent = ROUTE.get(cmd.lower())
-    return cmd, agent, cleaned
+    return cmd, agent, reqid, cleaned
 
 
 def download_attachments(files, dest: Path):
@@ -102,14 +108,14 @@ def on_mention(event, say, client, logger):
     text = event.get("text", "")
     files = event.get("files", [])
     thread_ts = event.get("thread_ts") or event.get("ts")
-    cmd, agent, full = parse_command(text)
+    cmd, agent, reqid, full = parse_command(text)
 
     ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     work = REVIEW_DIR / f"{ts}_{cmd or 'cmd'}" / "attachments"
     saved = download_attachments(files, work)
 
     # 1) 수신 확인 + 라우팅 결과 스레드 응답
-    lines = [f":inbox_tray: 수신: *{cmd or '(명령없음)'}*"]
+    lines = [f":inbox_tray: 수신: *{cmd or '(명령없음)'}* (요구사항번호: `{reqid}`)"]
     if agent:
         lines.append(f":robot_face: 라우팅 → *{agent}*")
     else:
@@ -128,7 +134,7 @@ def on_mention(event, say, client, logger):
         try:
             say(text=f":hourglass_flowing_sand: Claude {agent} 검토 진행 중… (수 분 소요)", thread_ts=thread_ts)
             md_path, slack_summary = slack_review_agent.run_review_via_claude(
-                cmd, agent, [work / n for n, _ in saved], work.parent)
+                cmd, agent, [work / n for n, _ in saved], work.parent, reqid=reqid)
             say(text=slack_summary, thread_ts=thread_ts)
             # 검토결과.md 를 Slack에 업로드(또는 내용 게시)
             mode = post_review_md(client, event["channel"], thread_ts, md_path)

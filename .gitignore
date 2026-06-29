@@ -26,3 +26,4 @@ __pycache__/
 
 # Slack 봇 런타임 워크스페이스(다운로드 첨부·검토결과)
 docs/06. slack-review/
+.claude/.env

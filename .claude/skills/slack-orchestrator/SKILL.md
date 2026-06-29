@@ -1,6 +1,6 @@
 ---
 name: slack-orchestrator
-description: Slack 명령어+첨부파일을 분석해 적절한 전문 에이전트를 선택·실행하고, 검토 결과를 Markdown으로 작성한 뒤 Slack에 요약·다음 액션을 보고하는 오케스트레이터. 8단계(명령확인→첨부명→첨부내용→Agent결정→기준분석→상태공유→Slack요약→다음액션)로 진행한다. 트리거 - "@GovAI 검토", "Slack 첨부 검토", "데이터모델링/데이터모델링검토/표준화검토/DB검토/코드검토/설계검토/보안검토".
+description: Slack 명령어+첨부파일을 분석해 적절한 전문 에이전트를 선택·실행하고, 검토 결과를 Markdown으로 작성한 뒤 Slack에 요약·다음 액션을 보고하는 오케스트레이터. 8단계(명령확인→첨부명→첨부내용→Agent결정→기준분석→상태공유→Slack요약→다음액션)로 진행한다. 트리거 - "@GovAI 검토", "Slack 첨부 검토", "데이터모델링/데이터모델링검토/표준화검토/DB검토/코드검토/설계검토/보안검토", "산출물작성".
 allowed-tools: Read, Write, Grep, Glob, Bash, Skill, Agent, SendMessage
 ---
 
@@ -37,10 +37,11 @@ docs/06. slack-review/{YYYYMMDD_HHMMSS}_{명령}/
 | 보안검토 | 코드·설정·`*.properties` | **security-auditor** | 취약점·시크릿·인증·인가 |
 | 품질검토 · 정적분석 | 코드 전반 | **static-analyzer** | 정적 결함·복잡도·중복 |
 
-- **체이닝 명령(데이터모델링)**: 단일 검토가 아니라 **생성→구축 파이프라인**이다.
+- **체이닝 명령(데이터모델링)**: 단일 검토가 아니라 **생성→구축→등록 파이프라인**이다.
   1. **da-agent**(da-orchestrator 1~7): 첨부 요구사항으로 모델링·표준화·검증·산출물 7종 생성.
   2. **dba-agent**(dba-orchestrator): 생성된 테이블정의서·컬럼정의서로 DDL 생성 → **대상 DB(기본 Oracle 11g/komsa)에 테이블 실제 생성**(기존 시 재생성). DROP/CREATE 등 실 DB 변경이므로 대상 계정·재생성 여부를 보고에 명시한다.
-  3. 두 단계의 진행을 단계별로 Slack에 공유하고, 최종에 **생성 산출물 + 생성된 테이블 목록**을 보고한다.
+  3. **산출물 Confluence 등록(상시)**: da-agent 산출물을 `scripts/upload_pages_in_folders.py`로 등록(da-orchestrator Phase 9)하고, **등록된 Confluence 위치(URL)를 Slack에 공유**한다. 예: `https://nsonesoft.atlassian.net/wiki/spaces/TNYUU/folder/677871627`.
+  4. 각 단계 진행을 Slack에 공유하고, 최종에 **생성 산출물 + 생성된 테이블 목록 + Confluence 등록 위치(URL)** 를 보고한다.
 - **복수 후보** 시: 명령 키워드를 1순위, 첨부 다수 유형을 보조 근거로 **주 에이전트 1개**를 정하고, 부수 검토가 필요하면 보조 에이전트를 후속 제안한다.
 - **표에 없음/모호**: 추측하지 말고 6)에서 Slack에 1회 확인 질문을 올린다.
 
@@ -88,6 +89,8 @@ docs/06. slack-review/{YYYYMMDD_HHMMSS}_{명령}/
 
 ### 8) 다음 액션 제시
 - 보완 필요 항목, 책임자, 후속 에이전트(예: da→dba 구축, 산출물 Confluence 등록 Phase 9) 등 **명확한 다음 단계**를 요약 말미에 제시한다.
+
+> **전략적 compact 체크포인트** ([[strategic-compact]]): 검토결과는 `_검토결과.md`로 보존된다. 한 Slack 명령 처리를 끝내고 **서로 무관한 다음 명령/첨부**로 넘어가기 전(예: 코드검토 → 표준화검토)에는 직전 첨부 본문·추출 내용이 컨텍스트를 오염시키므로 `/compact`를 제안한다. 동일 명령의 후속 보완 작업 중에는 하지 않는다.
 
 ## `{명령}-검토결과.md` 형식
 

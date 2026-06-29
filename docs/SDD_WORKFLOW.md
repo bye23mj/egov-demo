@@ -275,7 +275,7 @@ python3 scripts/sdd_generate_planning.py
 ```bash
 #!/bin/bash
 # 환경 변수 설정
-export JIRA_EMAIL="bye23mj@nsonesoft.com"
+export JIRA_EMAIL="${JIRA_EMAIL}"
 export JIRA_TOKEN="your-token"
 export JIRA_BOARD_ID="427"
 

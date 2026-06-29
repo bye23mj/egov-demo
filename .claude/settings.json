@@ -32,27 +32,5 @@
         "reason": "보안: 비밀정보 파일 읽기 금지"
       }
     }
-  },
-  "hooks": {
-    "UserPromptSubmit": [
-      ".claude/hooks/agent-router.py"
-    ],
-    "PreToolUse": [
-      {
-        "tools": ["Edit", "Write"],
-        "script": ".claude/hooks/check-codex-before-write.py"
-      }
-    ],
-    "PostToolUse": [
-      {
-        "tools": ["Edit", "Write"],
-        "script": ".claude/hooks/lint-on-save.py"
-      },
-      {
-        "tools": ["Bash"],
-        "patterns": ["mvn test", "mvn.*test"],
-        "script": ".claude/hooks/post-test-analysis.py"
-      }
-    ]
   }
 }

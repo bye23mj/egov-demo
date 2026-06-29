@@ -81,7 +81,7 @@ specs/
 #### JIRA (필수)
 
 ```bash
-export JIRA_EMAIL="bye23mj@gmail.com"
+export JIRA_EMAIL="${JIRA_EMAIL}"
 export JIRA_TOKEN="your-api-token"
 ```
 

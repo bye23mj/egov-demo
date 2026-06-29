@@ -15,7 +15,7 @@ class ConfluenceConfig:
         "confluence_url": "https://nsonesoft.atlassian.net",
         "space_key": "TNYUU",
         "folder_id": "661389353",
-        "account": "bye23mj@nsonesoft.com",
+        "account": os.getenv("CONFLUENCE_EMAIL") or os.getenv("JIRA_EMAIL", ""),
         "local_folder": "/Users/ai/vscode/egov-demo/docs/00. confluence",
         "token": None,  # 보안: 환경변수 또는 별도 저장
     }

@@ -18,7 +18,7 @@
 | **Confluence URL** | https://nsonesoft.atlassian.net |
 | **Space Key** | TNYUU |
 | **Folder ID** | 661389353 |
-| **Account** | bye23mj@nsonesoft.com |
+| **Account** | ${JIRA_EMAIL} |
 | **Auth Token** | ATATT3xFfGF0KmZp0WmP5iRFdFPXoQj4UGHz4m3wF5OAGy67bmWrkfYSRUtCTTPzQwPDVARUm20PMN4k6aKjBUXC_Tks7NdbiN1rjAFp4BJ3KIsOgf4KqLOzmAbCLl3PIHm8o4dJTqzs9EsVERGizts4GFDf_kpNbj5pSnnnOAtQeWj8Fhi14Hs=5E98863D |
 | **Local Folder** | `/Users/ai/vscode/egov-demo/docs/00. confluence` |
 
@@ -220,7 +220,7 @@ GET /wiki/api/v2/attachments/{attachment_id}/file
   "url": "https://nsonesoft.atlassian.net/wiki/spaces/TNYUU/pages/12345678",
   "version": 3,
   "last_modified": "2026-06-06T10:30:00Z",
-  "last_modified_by": "bye23mj@nsonesoft.com",
+  "last_modified_by": "${JIRA_EMAIL}",
   "local_file": "sample-document.md",
   "local_checksum": "abc123def456",
   "status": "synced",

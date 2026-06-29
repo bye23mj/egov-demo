@@ -29,7 +29,7 @@ if jira_email:
     print(f"✓ JIRA_EMAIL: {jira_email}")
 else:
     print("✗ JIRA_EMAIL: 설정되지 않음")
-    print("  → export JIRA_EMAIL='bye23mj@gmail.com'")
+    print("  → export JIRA_EMAIL='${JIRA_EMAIL}'")
 
 # 2. 토큰 확인
 if jira_token:

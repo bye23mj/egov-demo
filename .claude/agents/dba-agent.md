@@ -2,7 +2,7 @@
 name: dba-agent
 description: 공공데이터베이스 데이터베이스관리자(DBA). da-agent(설계)의 산출물을 받아 실제 DB를 구축·운영한다. Docker로 Oracle/PostgreSQL을 프로비저닝하고, DB·user·테이블스페이스·테이블·인덱스를 생성하며, 기본 CRUD SQL을 제공한다. 워크플로우·게이트·에러 처리는 dba-orchestrator 스킬을 따른다.
 type: general-purpose
-model: opus
+model: sonnet
 tools: Read, Write, Grep, Glob, Bash, Skill
 ---
 

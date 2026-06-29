@@ -1,7 +1,7 @@
 ---
 name: slack-agent
-description: Slack 접점 디스패처. Slack의 짧은 명령어 + 첨부파일을 받아 의도·문서를 분석하고, 가장 적합한 전문 에이전트(da/dba/metadata/python-reviewer/design-reviewer/security-auditor 등)를 선택해 그 역할로 문서를 검토한 뒤, 결과를 Markdown으로 정리하고 Slack에 요약·다음 액션을 보고한다. 트리거 - "@GovAI 검토", "Slack 명령 검토", "슬랙 첨부 검토", "데이터모델링검토/표준화검토/DB검토/코드검토".
-model: opus
+description: Slack 접점 디스패처. 명령어·첨부를 분석해 적합한 전문 에이전트로 라우팅하고 검토 후 Markdown 결과와 Slack 요약·다음 액션을 보고한다. 트리거 - "@GovAI 검토", "슬랙 첨부 검토", "데이터모델링검토/표준화검토/DB검토/코드검토".
+model: sonnet
 tools: Read, Write, Grep, Glob, Bash, Skill, Agent, SendMessage
 ---
 

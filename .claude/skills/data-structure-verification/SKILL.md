@@ -7,7 +7,7 @@ allowed-tools: Read, Grep, Glob, Bash
 # data-structure-verification (공공DB 데이터구조 검증)
 
 > da-agent 3단계를 독립 스킬로 승격. 표준화검토(metadata-agent)를 반영한 물리모델의 구조 건전성을 검증한다.
-> ECC `database-migrations`(안전변경)·`database-reviewer`(스키마검토) 패턴을 참고하되 **공공DB·대상 DBMS 기준**으로 점검한다.
+> 안전변경 점검은 자족 스킬 `db-migrations`의 원칙(가역·무중단·표준 준수)을 참고하되 **공공DB·대상 DBMS 기준**으로 점검한다.
 
 ## 사용 시점
 
@@ -30,7 +30,7 @@ allowed-tools: Read, Grep, Glob, Bash
 | 도메인 | 타입·길이·NULL 허용·기본값이 표준도메인과 일치 |
 | 코드 | `_CD` 컬럼의 표준코드 매핑·허용값 정의 |
 | 명명 | 표준용어 영문약어명 기준, 일관성 |
-| 테이블명 | [`.claude/rules/테이블명명규칙.md`](../../rules/테이블명명규칙.md) 준수(지연 로딩) — 구조(`[업무영역]+[관리대상]+[유형]`)·유형 접미어·엔터티 정합·금지명(DATA/INFO/MASTER/TEMP/ETC/TEST/OLD/NEW) 회피. 동 문서 10절 12개 체크리스트로 검토 |
+| 테이블명 | [`.claude/docs/standards/테이블명명규칙.md`](../../docs/standards/테이블명명규칙.md) 준수(지연 로딩) — 구조(`[업무영역]+[관리대상]+[유형]`)·유형 접미어·엔터티 정합·금지명(DATA/INFO/MASTER/TEMP/ETC/TEST/OLD/NEW) 회피. 동 문서 10절 12개 체크리스트로 검토 |
 | 제약/인덱스 | PK/UK/NOT NULL/인덱스 적정성, 과다/누락 |
 
 ## DBMS별 추가 점검

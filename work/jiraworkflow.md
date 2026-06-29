@@ -13,7 +13,7 @@
 #### 방법 1: 환경변수로 설정 (권장)
 
 ```bash
-export JIRA_EMAIL="bye23mj@gmail.com"
+export JIRA_EMAIL="${JIRA_EMAIL}"
 export JIRA_TOKEN="your-jira-api-token"
 ```
 
@@ -22,7 +22,7 @@ export JIRA_TOKEN="your-jira-api-token"
 ```bash
 mkdir -p ~/.jira-sync
 cat > ~/.jira-sync/.env << 'EOF'
-JIRA_EMAIL=bye23mj@gmail.com
+JIRA_EMAIL=${JIRA_EMAIL}
 JIRA_TOKEN=your-jira-api-token
 JIRA_INSTANCE_URL=https://your-instance.atlassian.net
 EOF
@@ -272,7 +272,7 @@ $ /sdd-collect
 
 ```bash
 # Step 1: JIRA 설정 확인
-export JIRA_EMAIL="bye23mj@gmail.com"
+export JIRA_EMAIL="${JIRA_EMAIL}"
 export JIRA_TOKEN="your-api-token"
 
 # Step 2: 문서 수집
@@ -355,7 +355,7 @@ python scripts/confluence/confluence-sync.py jira status
 ```
 ✓ JIRA 연결 성공
 Instance: https://your-instance.atlassian.net
-User: bye23mj@gmail.com
+User: ${JIRA_EMAIL}
 ```
 
 ### 5.2 JIRA 이슈 검색

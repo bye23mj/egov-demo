@@ -4,302 +4,64 @@ description: Use this skill when retrieving Jira tickets, analyzing requirements
 origin: ECC
 ---
 
-# Jira Integration Skill
+# Jira Integration Skill (egov-demo)
 
-Retrieve, analyze, and update Jira tickets directly from your AI coding workflow. Supports both **MCP-based** (recommended) and **direct REST API** approaches.
+Jira 이슈를 조회·분석·업데이트한다. **MCP 우선** — 저장소 루트 `.mcp.json`의 `atlassian`(mcp-atlassian)이 Jira+Confluence를 함께 제공한다. MCP 불가 시에만 REST 폴백.
 
-## When to Activate
+## 사용 시점
 
-- Fetching a Jira ticket to understand requirements
-- Extracting testable acceptance criteria from a ticket
-- Adding progress comments to a Jira issue
-- Transitioning a ticket status (To Do → In Progress → Done)
-- Linking merge requests or branches to a Jira issue
-- Searching for issues by JQL query
+- 티켓 조회로 요구사항 파악, 테스트 가능한 수용기준 추출
+- 진행 코멘트 추가, 상태 전이(To Do → In Progress → Done)
+- PR/브랜치 연결, JQL 검색
 
-## Prerequisites
+## MCP 도구 (mcp-atlassian)
 
-### Option A: MCP Server (Recommended)
-
-Install the `mcp-atlassian` MCP server. This exposes Jira tools directly to your AI agent.
-
-**Requirements:**
-- Python 3.10+
-- `uvx` (from `uv`), installed via your package manager or the official `uv` installation documentation
-
-**Add to your MCP config** (e.g., `~/.claude.json` → `mcpServers`):
-
-```json
-{
-  "jira": {
-    "command": "uvx",
-    "args": ["mcp-atlassian==0.21.0"],
-    "env": {
-      "JIRA_URL": "https://YOUR_ORG.atlassian.net",
-      "JIRA_EMAIL": "your.email@example.com",
-      "JIRA_API_TOKEN": "your-api-token"
-    },
-    "description": "Jira issue tracking — search, create, update, comment, transition"
-  }
-}
-```
-
-> **Security:** Never hardcode secrets. Prefer setting `JIRA_URL`, `JIRA_EMAIL`, and `JIRA_API_TOKEN` in your system environment (or a secrets manager). Only use the MCP `env` block for local, uncommitted config files.
-
-**To get a Jira API token:**
-1. Go to <https://id.atlassian.com/manage-profile/security/api-tokens>
-2. Click **Create API token**
-3. Copy the token — store it in your environment, never in source code
-
-### Option B: Direct REST API
-
-If MCP is not available, use the Jira REST API v3 directly via `curl` or a helper script.
-
-**Required environment variables:**
-
-| Variable | Description |
-|----------|-------------|
-| `JIRA_URL` | Your Jira instance URL (e.g., `https://yourorg.atlassian.net`) |
-| `JIRA_EMAIL` | Your Atlassian account email |
-| `JIRA_API_TOKEN` | API token from id.atlassian.com |
-
-Store these in your shell environment, secrets manager, or an untracked local env file. Do not commit them to the repo.
-
-## MCP Tools Reference
-
-When the `mcp-atlassian` MCP server is configured, these tools are available:
-
-| Tool | Purpose | Example |
-|------|---------|---------|
-| `jira_search` | JQL queries | `project = PROJ AND status = "In Progress"` |
-| `jira_get_issue` | Fetch full issue details by key | `PROJ-1234` |
-| `jira_create_issue` | Create issues (Task, Bug, Story, Epic) | New bug report |
-| `jira_update_issue` | Update fields (summary, description, assignee) | Change assignee |
-| `jira_transition_issue` | Change status | Move to "In Review" |
-| `jira_add_comment` | Add comments | Progress update |
-| `jira_get_sprint_issues` | List issues in a sprint | Active sprint review |
-| `jira_create_issue_link` | Link issues (Blocks, Relates to) | Dependency tracking |
-| `jira_get_issue_development_info` | See linked PRs, branches, commits | Dev context |
-
-> **Tip:** Always call `jira_get_transitions` before transitioning — transition IDs vary per project workflow.
-
-## Direct REST API Reference
-
-### Fetch a Ticket
-
-```bash
-curl -s -u "$JIRA_EMAIL:$JIRA_API_TOKEN" \
-  -H "Content-Type: application/json" \
-  "$JIRA_URL/rest/api/3/issue/PROJ-1234" | jq '{
-    key: .key,
-    summary: .fields.summary,
-    status: .fields.status.name,
-    priority: .fields.priority.name,
-    type: .fields.issuetype.name,
-    assignee: .fields.assignee.displayName,
-    labels: .fields.labels,
-    description: .fields.description
-  }'
-```
-
-### Fetch Comments
-
-```bash
-curl -s -u "$JIRA_EMAIL:$JIRA_API_TOKEN" \
-  -H "Content-Type: application/json" \
-  "$JIRA_URL/rest/api/3/issue/PROJ-1234?fields=comment" | jq '.fields.comment.comments[] | {
-    author: .author.displayName,
-    created: .created[:10],
-    body: .body
-  }'
-```
-
-### Add a Comment
-
-```bash
-curl -s -X POST -u "$JIRA_EMAIL:$JIRA_API_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "body": {
-      "version": 1,
-      "type": "doc",
-      "content": [{
-        "type": "paragraph",
-        "content": [{"type": "text", "text": "Your comment here"}]
-      }]
-    }
-  }' \
-  "$JIRA_URL/rest/api/3/issue/PROJ-1234/comment"
-```
-
-### Transition a Ticket
-
-```bash
-# 1. Get available transitions
-curl -s -u "$JIRA_EMAIL:$JIRA_API_TOKEN" \
-  "$JIRA_URL/rest/api/3/issue/PROJ-1234/transitions" | jq '.transitions[] | {id, name: .name}'
-
-# 2. Execute transition (replace TRANSITION_ID)
-curl -s -X POST -u "$JIRA_EMAIL:$JIRA_API_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"transition": {"id": "TRANSITION_ID"}}' \
-  "$JIRA_URL/rest/api/3/issue/PROJ-1234/transitions"
-```
-
-### Search with JQL
-
-```bash
-curl -s -G -u "$JIRA_EMAIL:$JIRA_API_TOKEN" \
-  --data-urlencode "jql=project = PROJ AND status = 'In Progress'" \
-  "$JIRA_URL/rest/api/3/search"
-```
-
-## Analyzing a Ticket
-
-When retrieving a ticket for development or test automation, extract:
-
-### 1. Testable Requirements
-- **Functional requirements** — What the feature does
-- **Acceptance criteria** — Conditions that must be met
-- **Testable behaviors** — Specific actions and expected outcomes
-- **User roles** — Who uses this feature and their permissions
-- **Data requirements** — What data is needed
-- **Integration points** — APIs, services, or systems involved
-
-### 2. Test Types Needed
-- **Unit tests** — Individual functions and utilities
-- **Integration tests** — API endpoints and service interactions
-- **E2E tests** — User-facing UI flows
-- **API tests** — Endpoint contracts and error handling
-
-### 3. Edge Cases & Error Scenarios
-- Invalid inputs (empty, too long, special characters)
-- Unauthorized access
-- Network failures or timeouts
-- Concurrent users or race conditions
-- Boundary conditions
-- Missing or null data
-- State transitions (back navigation, refresh, etc.)
-
-### 4. Structured Analysis Output
-
-```
-Ticket: PROJ-1234
-Summary: [ticket title]
-Status: [current status]
-Priority: [High/Medium/Low]
-Test Types: Unit, Integration, E2E
-
-Requirements:
-1. [requirement 1]
-2. [requirement 2]
-
-Acceptance Criteria:
-- [ ] [criterion 1]
-- [ ] [criterion 2]
-
-Test Scenarios:
-- Happy Path: [description]
-- Error Case: [description]
-- Edge Case: [description]
-
-Test Data Needed:
-- [data item 1]
-- [data item 2]
-
-Dependencies:
-- [dependency 1]
-- [dependency 2]
-```
-
-## Updating Tickets
-
-### When to Update
-
-| Workflow Step | Jira Update |
+| 도구 | 용도 |
 |---|---|
-| Start work | Transition to "In Progress" |
-| Tests written | Comment with test coverage summary |
-| Branch created | Comment with branch name |
-| PR/MR created | Comment with link, link issue |
-| Tests passing | Comment with results summary |
-| PR/MR merged | Transition to "Done" or "In Review" |
+| `jira_search` | JQL 검색 (예: `project = MZ2026 AND status = "In Progress"`) |
+| `jira_get_issue` | 이슈 상세 조회 (키: `MZ2026-1234`) |
+| `jira_create_issue` / `jira_update_issue` | 이슈 생성 / 필드 수정 |
+| `jira_transition_issue` | 상태 전이 (전이 전 `jira_get_transitions` 먼저 호출 — ID는 워크플로우마다 다름) |
+| `jira_add_comment` | 코멘트 추가 |
+| `jira_create_issue_link` / `jira_get_issue_development_info` | 이슈 링크 / 연결 PR·브랜치 조회 |
 
-### Comment Templates
+## REST 폴백 (MCP 불가 시)
 
-**Starting Work:**
-```
-Starting implementation for this ticket.
-Branch: feat/PROJ-1234-feature-name
-```
+인증은 `.env`의 `JIRA_EMAIL`/`JIRA_TOKEN`(`env_loader.load_env()` 자동 로드). 베이스 `JIRA_BASE_URL`. 인증 헤더 `-u "$JIRA_EMAIL:$JIRA_TOKEN"`.
 
-**Tests Implemented:**
-```
-Automated tests implemented:
+| 작업 | 엔드포인트 (v3) |
+|---|---|
+| 티켓 조회 | `GET /rest/api/3/issue/{key}` |
+| 코멘트 조회/추가 | `GET\|POST /rest/api/3/issue/{key}/comment` (본문은 ADF `doc` 포맷) |
+| 전이 목록/실행 | `GET\|POST /rest/api/3/issue/{key}/transitions` |
+| JQL 검색 | `GET /rest/api/3/search/jql` ⚠️ 구 `/search`는 **410 폐기** (`scripts/confluence/jira_api.py` 반영) |
 
-Unit Tests:
-- [test file 1] — [what it covers]
-- [test file 2] — [what it covers]
+## 티켓 분석 (조회 후 추출 항목)
 
-Integration Tests:
-- [test file] — [endpoints/flows covered]
+- **테스트 가능 요구사항**: 기능 요구사항, 수용기준, 사용자 역할/권한, 데이터·연계 지점
+- **필요 테스트 유형**: Unit / Integration / E2E / API
+- **엣지·오류 시나리오**: 잘못된 입력, 미인가 접근, 타임아웃, 동시성/경합, 경계값, null, 상태 전이
 
-All tests passing locally. Coverage: XX%
-```
+**구조화 출력**: 티켓키·요약·상태·우선순위 / 요구사항 목록 / 수용기준 체크리스트 / 테스트 시나리오(Happy·Error·Edge) / 필요 테스트데이터 / 의존성.
 
-**PR Created:**
-```
-Pull request created:
-[PR Title](https://github.com/org/repo/pull/XXX)
+## 티켓 업데이트
 
-Ready for review.
-```
+| 워크플로우 단계 | Jira 업데이트 |
+|---|---|
+| 작업 시작 | "In Progress" 전이 + 브랜치명 코멘트 |
+| 테스트 작성/통과 | 커버리지 요약 코멘트 |
+| PR 생성 | PR 링크 코멘트 + 이슈 링크 |
+| PR 머지 | "Done"/"In Review" 전이 |
 
-**Work Complete:**
-```
-Implementation complete.
+코멘트 원칙: 진행하며 수시 업데이트, 간결하게, 복사 대신 링크(PR·테스트리포트), 수용기준 모호 시 코딩 전 확인.
 
-PR merged: [link]
-Test results: All passing (X/Y)
-Coverage: XX%
-```
+## 보안·문제해결
 
-## Security Guidelines
+- 토큰 하드코딩 금지 → `.env`/시크릿 매니저, `.gitignore` 등록, 노출 시 즉시 재발급, 최소권한.
+- `401` 토큰 만료 → 재발급 / `403` 권한 부족 / `404` 키·URL 확인 / `spawn uvx ENOENT` → `uvx` 전체경로 또는 PATH 설정 / 타임아웃 → VPN·방화벽.
 
-- **Never hardcode** Jira API tokens in source code or skill files
-- **Always use** environment variables or a secrets manager
-- **Add `.env`** to `.gitignore` in every project
-- **Rotate tokens** immediately if exposed in git history
-- **Use least-privilege** API tokens scoped to required projects
-- **Validate** that credentials are set before making API calls — fail fast with a clear message
+## egov-demo 적용 노트
 
-## Troubleshooting
-
-| Error | Cause | Fix |
-|---|---|---|
-| `401 Unauthorized` | Invalid or expired API token | Regenerate at id.atlassian.com |
-| `403 Forbidden` | Token lacks project permissions | Check token scopes and project access |
-| `404 Not Found` | Wrong ticket key or base URL | Verify `JIRA_URL` and ticket key |
-| `spawn uvx ENOENT` | IDE cannot find `uvx` on PATH | Use full path (e.g., `~/.local/bin/uvx`) or set PATH in `~/.zprofile` |
-| Connection timeout | Network/VPN issue | Check VPN connection and firewall rules |
-
-## Best Practices
-
-- Update Jira as you go, not all at once at the end
-- Keep comments concise but informative
-- Link rather than copy — point to PRs, test reports, and dashboards
-- Use @mentions if you need input from others
-- Check linked issues to understand full feature scope before starting
-- If acceptance criteria are vague, ask for clarification before writing code
-
----
-
-## egov-demo 적용 노트 (origin:ECC 보존)
-
-본 스킬은 ECC 원본이다. egov-demo에서는 아래 규약을 따른다.
-
-- **환경변수 매핑**: egov `.env`는 `JIRA_BASE_URL`·`JIRA_EMAIL`·`JIRA_TOKEN`을 사용한다(ECC의 `JIRA_URL`/`JIRA_API_TOKEN`과 동일 의미). `env_loader.load_env()`로 자동 로드된다.
-- **MCP 권장**: 저장소 루트 `.mcp.json`의 `atlassian`(mcp-atlassian)이 Jira+Confluence를 함께 제공한다.
-- **검색 엔드포인트**: 구 `/rest/api/3/search`는 **410(폐기)** → **`/rest/api/3/search/jql`** 사용. (`scripts/confluence/jira_api.py` 반영)
-- **프로젝트**: `MZ2026` (2026년 한국해양교통안전공단 산출물관리).
-- **Confluence 연동**은 [[confluence-integration]] 스킬 참조.
+- **환경변수**: egov `.env`는 `JIRA_BASE_URL`·`JIRA_EMAIL`·`JIRA_TOKEN` (ECC의 `JIRA_URL`/`JIRA_API_TOKEN`과 동일 의미).
+- **프로젝트**: `MZ2026` (2026 한국해양교통안전공단 산출물관리).
+- **Confluence 연동**: [[confluence-integration]] (동일 mcp-atlassian).

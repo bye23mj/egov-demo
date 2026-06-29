@@ -20,7 +20,8 @@ from requests.auth import HTTPBasicAuth
 print("🔍 JIRA MZ2026 프로젝트 필드 조회\n")
 
 jira_url = "https://nsonesoft.atlassian.net"
-email = "bye23mj@nsonesoft.com"
+import os
+email = os.getenv("JIRA_EMAIL", "")
 token = "ATATT3xFfGF0KmZp0WmP5iRFdFPXoQj4UGHz4m3wF5OAGy67bmWrkfYSRUtCTTPzQwPDVARUm20PMN4k6aKjBUXC_Tks7NdbiN1rjAFp4BJ3KIsOgf4KqLOzmAbCLl3PIHm8o4dJTqzs9EsVERGizts4GFDf_kpNbj5pSnnnOAtQeWj8Fhi14Hs=5E98863D"
 project_key = "MZ2026"
 

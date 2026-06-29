@@ -58,7 +58,7 @@ def extract_reqid(issue_key: str, title: str = None, confluence_content: str = N
     return {"reqid": generated, "source": "GENERATED"}
 
 # JIRA 설정
-JIRA_EMAIL = os.getenv("JIRA_EMAIL", "bye23mj@nsonesoft.com")
+JIRA_EMAIL = os.getenv("JIRA_EMAIL", "")
 JIRA_TOKEN = os.getenv("JIRA_TOKEN", "")
 JIRA_INSTANCE = "https://nsonesoft.atlassian.net"
 PROJECT_KEY = "MZ2026"

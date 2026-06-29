@@ -21,7 +21,7 @@ class JiraConfig:
     DEFAULTS = {
         "jira_url": "https://nsonesoft.atlassian.net",
         "project_key": "GOVPJT",
-        "account": "bye23mj@nsonesoft.com",
+        "account": os.getenv("JIRA_EMAIL", ""),
         "token": None,  # 보안: 환경변수 또는 별도 저장
     }
 

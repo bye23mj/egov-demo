@@ -150,7 +150,7 @@ python -m confluence.test_jira_api
 ✅ 설정 조회 성공
    jira_url: https://nsonesoft.atlassian.net
    project_key: GOVPJT
-   account: bye23mj@nsonesoft.com
+   account: ${JIRA_EMAIL}
    token: jira_ap...xxxxx
 ```
 
@@ -191,7 +191,7 @@ python -m confluence.test_jira_api
   "confluence_url": "https://nsonesoft.atlassian.net",
   "space_key": "TNYUU",
   "folder_id": "661389353",
-  "account": "bye23mj@nsonesoft.com",
+  "account": "${JIRA_EMAIL}",
   "local_folder": "/Users/ai/vscode/egov-demo/docs/00. confluence"
 }
 ```
@@ -210,7 +210,7 @@ CONFLUENCE_TOKEN=ATATT3x...
 {
   "jira_url": "https://nsonesoft.atlassian.net",
   "project_key": "GOVPJT",
-  "account": "bye23mj@nsonesoft.com"
+  "account": "${JIRA_EMAIL}"
 }
 ```
 
@@ -640,7 +640,7 @@ cat ~/.jira-sync/.env
 python confluence-sync.py jira config --show
 
 # 3. 네트워크 연결 확인
-curl -u bye23mj@nsonesoft.com:TOKEN https://nsonesoft.atlassian.net/rest/api/3/myself
+curl -u ${JIRA_EMAIL}:TOKEN https://nsonesoft.atlassian.net/rest/api/3/myself
 ```
 
 ### 이슈 검색 결과 없음

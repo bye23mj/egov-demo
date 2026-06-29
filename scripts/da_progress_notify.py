@@ -29,13 +29,14 @@ def load_webhook_url():
     url = os.getenv("SLACK_WEBHOOK_URL")
     if url:
         return url
-    # 저장소 루트(.env) 보조 로드 — scripts/ 상위 디렉터리
-    env_path = Path(__file__).resolve().parent.parent / ".env"
-    if env_path.exists():
-        for line in env_path.read_text(encoding="utf-8").splitlines():
-            line = line.strip()
-            if line.startswith("SLACK_WEBHOOK_URL=") and not line.startswith("#"):
-                return line.split("=", 1)[1].strip().strip('"').strip("'")
+    # 보조 로드 — .claude/.env(표준) → .env(루트, 하위호환)
+    root = Path(__file__).resolve().parent.parent
+    for env_path in (root / ".claude" / ".env", root / ".env"):
+        if env_path.exists():
+            for line in env_path.read_text(encoding="utf-8").splitlines():
+                line = line.strip()
+                if line.startswith("SLACK_WEBHOOK_URL=") and not line.startswith("#"):
+                    return line.split("=", 1)[1].strip().strip('"').strip("'")
     return None
 
 

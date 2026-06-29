@@ -26,7 +26,7 @@ from datetime import datetime
 from pathlib import Path
 
 # JIRA 설정
-JIRA_EMAIL = os.getenv("JIRA_EMAIL", "bye23mj@nsonesoft.com")
+JIRA_EMAIL = os.getenv("JIRA_EMAIL", "")
 JIRA_TOKEN = os.getenv("JIRA_TOKEN", "")
 JIRA_INSTANCE = "https://nsonesoft.atlassian.net"
 PROJECT_KEY = "MZ2026"
